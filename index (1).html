@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>대원테크 · 작업 가계부</title>
+<style>
+:root{font-family:system-ui,'Malgun Gothic',sans-serif;color:#453b52;background:#fff9fc}*{box-sizing:border-box}body{margin:0}header{background:linear-gradient(115deg,#ffb6d8,#d9c1ff);padding:27px 20px;color:#4d355b}header .wrap{max-width:1100px;margin:auto}h1{margin:0;font-size:28px}header p{margin:7px 0 0}.wrap{max-width:1100px;margin:20px auto;padding:0 15px}.panel{background:white;border:1px solid #f1e4f0;border-radius:20px;padding:20px;margin-bottom:17px;box-shadow:0 7px 20px #ba9dbb16}h2{font-size:19px;margin:0 0 14px}label{font-weight:700;font-size:13px;display:block;margin-bottom:6px}input,select,button{font:inherit}input,select{width:100%;border:1px solid #e4d7e8;border-radius:11px;padding:11px;background:white;color:#40364c}button{cursor:pointer;border:0;border-radius:12px;padding:11px 16px;font-weight:750;background:#f3ebff;color:#654c88}button.primary{background:linear-gradient(100deg,#f77ab5,#b68af1);color:white}button.danger{background:#fff0f0;color:#bb5061}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.field{min-width:0}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.muted{color:#857b91;font-size:13px}.stat{background:#fff7fc;border-radius:16px;padding:16px}.stat strong{display:block;font-size:23px;margin-top:7px}.status{display:inline-block;background:#fff8df;padding:7px 11px;border-radius:20px;font-size:13px;color:#7d6130}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:14px}th,td{padding:11px 9px;border-bottom:1px solid #f3eaf3;text-align:left}th{background:#fff7fc}td button{padding:6px 10px;font-size:12px}details summary{cursor:pointer;font-weight:800;color:#9465aa;font-size:17px}details[open] summary{margin-bottom:13px}.hint{background:#fff7e9;border-radius:12px;padding:12px;font-size:13px;line-height:1.7}.right{text-align:right}.tag{background:#f8eaf4;border-radius:20px;padding:4px 8px;font-size:12px}@media(max-width:700px){.grid,.grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}h1{font-size:23px}.panel{padding:15px}}@media(max-width:410px){.grid,.grid.three{grid-template-columns:1fr}}
+.chiprow{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0}.chip{border:1px solid #e8d5ed;background:#fff;color:#795c85;padding:10px 14px;border-radius:999px}.chip.active{background:linear-gradient(110deg,#fa8ac0,#bda0f6);color:white;border-color:transparent}.chip.boss{border-color:#f0b7c9}.minihead{font-size:13px;color:#8a7995;margin:12px 0 6px;font-weight:750}.batch{background:#fff7fd;border:1px dashed #e9c9e8;padding:15px;border-radius:16px}.personcheck{display:inline-flex;align-items:center;gap:7px;border:1px solid #eadced;padding:9px 12px;border-radius:12px;background:white;font-size:14px}.personcheck input{width:auto;accent-color:#d576af}.hidden{display:none!important}.filterbuttons button{padding:9px 15px}.sectionbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}.notice{font-size:13px;color:#7b6883;background:#f9f2ff;padding:10px;border-radius:12px}#jobButtons button{min-width:100px}#staffButtons button{min-width:86px}@media(max-width:700px){.chip{padding:9px 11px}.sectionbar{align-items:flex-start}} 
+.page-nav{display:flex;gap:10px;margin-bottom:18px;position:sticky;top:0;z-index:3;background:#fff9fcef;padding:10px 0;backdrop-filter:blur(8px)}.page-nav button{flex:1;font-size:16px;padding:14px}.batch-edit{width:115px;min-width:90px}.batch-total{font-weight:800;color:#ab528a}#batchIndividuals table{min-width:490px}#entryPage .panel{border-color:#f2d4e9}@media(max-width:600px){.page-nav button{font-size:14px;padding:12px 7px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script></head>
+<body>
+<header>
+<div class="wrap">
+<h1>🌷 대원테크 작업 가계부</h1>
+<p>사장님 허지은 · 직원 작업량과 정산을 한눈에 ✨</p>
+</div>
+</header>
+<main class="wrap"><nav class="page-nav"><button type="button" id="tabLedger" class="primary">📒 가계부 · 조회</button><button type="button" id="tabEntry">✏️ 작업 기록 입력</button></nav><div id="ledgerPage">
+<section class="panel">
+<h2>💗 정산 현황</h2>
+<div class="grid">
+<div class="stat">조회 건수<strong id="count">0건</strong>
+</div>
+<div class="stat">총 작업 수량<strong id="qtyTotal">0개</strong>
+</div>
+<div class="stat">총 작업 금액<strong id="amountTotal">0원</strong>
+</div>
+<div class="stat">조회 직원<strong id="staffTotal">0명</strong>
+</div>
+</div>
+</section>
+<section class="panel">
+<h2>🗓️ 조회 조건</h2>
+<div class="chiprow filterbuttons">
+<button type="button" data-period="today" class="chip">☀️ 오늘</button>
+<button type="button" data-period="month" class="chip">🗓️ 이번 달</button>
+<button type="button" data-period="all" class="chip active">🌈 전체 기간</button>
+</div>
+<div class="grid">
+<div>
+<label>시작 날짜</label>
+<input id="from" type="date">
+</div>
+<div>
+<label>종료 날짜</label>
+<input id="to" type="date">
+</div>
+<div class="hidden"><select id="filterStaff"></select><select id="quick"><option value="all">전체</option><option value="today">오늘</option><option value="month">이번 달</option></select></div>
+</div>
+<div class="actions">
+<button id="clearFilters">전체 보기</button>
+<button id="csv">📗 엑셀 내보내기</button>
+<button id="backup">💾 백업 JSON</button>
+<button id="restoreBtn">📂 백업 복원</button>
+<input id="restore" type="file" accept="application/json" hidden>
+</div>
+</section>
+<section class="panel">
+<h2>👩‍💼 직원별 기록 바로 보기</h2>
+<div id="filterStaffButtons" class="chiprow">
+</div>
+<p class="muted">이름을 누르면 해당 직원의 기록과 정산 금액만 표시됩니다. 사장 허지은도 조회할 수 있어요.</p>
+</section>
+<section class="panel">
+<h2>📒 작업 내역</h2>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>날짜</th>
+<th>직원</th>
+<th>작업 종류</th>
+<th>수량</th>
+<th>단가</th>
+<th>금액</th>
+<th>메모</th>
+<th>관리</th>
+</tr>
+</thead>
+<tbody id="rows">
+</tbody>
+</table>
+</div>
+</section>
+<section class="panel">
+<h2>👩‍💼 직원별 합계</h2>
+<div class="tablewrap">
+<table>
+<thead>
+<tr>
+<th>직원</th>
+<th>작업 건수</th>
+<th>총 수량</th>
+<th>총 금액</th>
+</tr>
+</thead>
+<tbody id="summary">
+</tbody>
+</table>
+</div>
+</section>
+<section class="panel">
+<h2>🏷️ 작업 종류와 단가 관리</h2>
+<div class="grid three">
+<div>
+<label>작업 이름</label>
+<input id="jobName" placeholder="예: 봉투 포장">
+</div>
+<div>
+<label>기본 단가 (원)</label>
+<input id="jobPrice" type="number" min="0" step="1">
+</div>
+<div style="display:flex;align-items:end">
+<button class="primary" id="addJob">작업 종류 저장</button>
+</div>
+</div>
+<div class="tablewrap" style="margin-top:12px">
+<table>
+<thead>
+<tr>
+<th>작업 종류</th>
+<th>기본 단가</th>
+<th>관리</th>
+</tr>
+</thead>
+<tbody id="jobs">
+</tbody>
+</table>
+</div>
+<p class="muted">단가를 변경해도 과거에 저장한 작업 기록의 단가는 그대로 유지됩니다.</p>
+</section>
+<section class="panel">
+<h2>👥 직원 관리</h2>
+<p class="notice">👑 사장 허지은은 기본 등록되어 있으며 직원 목록에서 삭제할 수 없습니다.</p>
+<div class="grid three">
+<div>
+<label>직원 이름</label>
+<input id="newStaff" placeholder="새 직원 이름">
+</div>
+<div style="display:flex;align-items:end">
+<button id="addStaff">직원 추가</button>
+</div>
+</div>
+<div id="staffList" class="actions">
+</div>
+<p class="muted">직원을 삭제하더라도 과거 작업 기록은 보존됩니다.</p>
+</section>
+</div><div id="entryPage" class="hidden"><section class="panel">
+<h2>✏️ 작업 기록 입력</h2>
+<div class="grid">
+<div>
+<label>작업 날짜</label>
+<input id="date" type="date">
+</div>
+<div class="hidden">
+<label>직원</label>
+<select id="staff">
+</select>
+</div>
+<div class="hidden">
+<label>작업 종류</label>
+<select id="job">
+</select>
+</div>
+<div>
+<label>수량</label>
+<input id="qty" type="number" min="0" step="1" placeholder="예: 100">
+</div>
+<div>
+<label>단가 (원, 수정 가능)</label>
+<input id="price" type="number" min="0" step="1">
+</div>
+<div>
+<label>예상 금액</label>
+<input id="preview" readonly>
+</div>
+<div style="grid-column:span 2">
+<label>메모 (선택)</label>
+<input id="memo" placeholder="특이사항">
+</div>
+</div>
+<div class="minihead">👤 작업자 선택 (사장님 포함)</div>
+<div id="staffButtons" class="chiprow">
+</div>
+<div class="minihead">🏷️ 작업 종류 선택</div>
+<div id="jobButtons" class="chiprow">
+</div>
+<div class="batch">
+<label class="personcheck">
+<input id="batchMode" type="checkbox"> 🌸 일괄 등록 (여러 명에게 같은 작업 등록)</label>
+<div id="batchPanel" class="hidden">
+<div class="actions">
+<button id="selectAll" type="button">전체 선택</button>
+<button id="selectNone" type="button">선택 해제</button>
+</div>
+<div id="batchStaff" class="chiprow">
+</div><div id="batchIndividuals" class="tablewrap" style="margin-top:14px"></div>
+<p class="muted">아래에서 선택한 사람마다 수량과 단가를 개별 수정할 수 있어요. 선택한 작업의 기본 단가가 먼저 채워집니다.</p>
+</div>
+</div>
+<div class="actions">
+<button class="primary" id="save">🌸 기록 저장</button>
+<button id="cancel">입력 초기화</button>
+</div>
+</section>
+</div><section class="panel">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+<b>☁️ GitHub 자동 저장</b>
+<span id="status" class="status">이 기기에서만 저장 중</span>
+</div>
+<p class="muted">기록은 입력 즉시 이 브라우저에 보관되고, 연결하면 GitHub 비공개 저장소에도 자동 저장됩니다.</p>
+<details id="settings">
+<summary>🔐 GitHub 저장소 연결 설정 (눌러서 열기 · 평소에는 숨김)</summary>
+<div class="hint">비공개 저장소를 먼저 생성하세요. Fine-grained personal access token은 해당 저장소에 <b>Contents: Read and write</b> 권한이 필요합니다. 토큰은 GitHub Pages 코드에 넣지 않고 이 기기의 브라우저에만 저장합니다. 기기를 공유한다면 토큰이 노출될 수 있습니다.</div>
+<div class="grid three" style="margin-top:13px">
+<div>
+<label>GitHub 사용자명</label>
+<input id="ghUser" autocomplete="off" placeholder="예: myaccount">
+</div>
+<div>
+<label>비공개 저장소 이름</label>
+<input id="ghRepo" autocomplete="off" placeholder="예: daewontech-data">
+</div>
+<div>
+<label>Fine-grained token</label>
+<input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_...">
+</div>
+</div>
+<div class="actions">
+<button class="primary" id="connect">연결하고 불러오기</button>
+<button id="disconnect" class="danger">연결 정보 삭제</button>
+<button id="sync">지금 동기화</button>
+</div>
+<p class="muted">동일한 GitHub 계정·저장소·토큰을 PC와 모바일에 각각 한 번씩 입력하세요. 동시에 편집하면 충돌이 발생할 수 있어 수동 확인이 필요합니다.</p>
+</details>
+</section>
+<p class="muted right">🌷 대원테크 · 사장님용 관리 도구</p>
+</main>
+<script>
+(()=>{'use strict';const $=id=>document.getElementById(id),money=n=>Number(n||0).toLocaleString('ko-KR')+'원',num=n=>Number(n||0).toLocaleString('ko-KR'),today=()=>new Date().toLocaleDateString('sv-SE');const KEY='daewontech_data_v3',CFG='daewontech_gh_v3';const initial=()=>({staff:['허지은','박은주','김송미','김경아','이진아','박수임','김희정','신미애'],jobs:[{name:'기본 작업 (단가 설정 필요)',price:0}],records:[],revision:0});let data,config={},sha=null,dirty=false,saving=false,editId=null,timer=null,lastRemote='',syncBusy=false;try{data=JSON.parse(localStorage.getItem(KEY))||initial();config=JSON.parse(localStorage.getItem(CFG))||{}}catch{data=initial()};data.staff=Array.isArray(data.staff)?data.staff:initial().staff;if(!data.staff.includes('허지은'))data.staff.unshift('허지은');data.jobs=Array.isArray(data.jobs)?data.jobs:initial().jobs;data.records=Array.isArray(data.records)?data.records:[];data.revision=Number(data.revision)||0;const valid=()=>config.user&&config.repo&&config.token;function status(s){$('status').textContent=s}function persist(){data.revision++;localStorage.setItem(KEY,JSON.stringify(data));dirty=true;render();schedule()}function schedule(){if(!valid()){status('이 기기에 자동 저장됨');return}status('☁️ 저장 대기 중');clearTimeout(timer);timer=setTimeout(()=>sync(true),1200)}function fill(select,arr,all){let v=select.value;select.replaceChildren();if(all)select.add(new Option('전체 직원',''));arr.forEach(x=>select.add(new Option(x,x)));if([...select.options].some(o=>o.value===v))select.value=v}function render(){if(!data.staff.includes('허지은'))data.staff.unshift('허지은');fill($('staff'),data.staff,false);fill($('filterStaff'),data.staff,true);let j=$('job').value;$('job').replaceChildren();data.jobs.forEach(x=>$('job').add(new Option(x.name,x.name)));if(data.jobs.some(x=>x.name===j))$('job').value=j;renderButtons();const filtered=filteredRows();$('rows').replaceChildren();filtered.sort((a,b)=>b.date.localeCompare(a.date)).forEach(r=>{let tr=document.createElement('tr');[r.date,r.staff,r.job,num(r.qty),money(r.price),money(r.qty*r.price),r.memo||''].forEach(t=>{let td=document.createElement('td');td.textContent=t;tr.append(td)});let td=document.createElement('td');let e=document.createElement('button');e.textContent='수정';e.onclick=()=>{editId=r.id;showPage('entry');$('batchMode').checked=false;$('batchPanel').classList.add('hidden');$('date').value=r.date;$('staff').value=r.staff;$('job').value=r.job;$('qty').value=r.qty;$('price').value=r.price;$('memo').value=r.memo||'';preview();window.scrollTo({top:$('date').getBoundingClientRect().top+scrollY-100,behavior:'smooth'})};let d=document.createElement('button');d.textContent='삭제';d.className='danger';d.onclick=()=>{if(confirm('이 작업 기록을 삭제할까요?')){data.records=data.records.filter(x=>x.id!==r.id);persist()}};td.append(e,' ',d);tr.append(td);$('rows').append(tr)});$('count').textContent=filtered.length+'건';$('qtyTotal').textContent=num(filtered.reduce((s,r)=>s+r.qty,0))+'개';$('amountTotal').textContent=money(filtered.reduce((s,r)=>s+r.qty*r.price,0));$('staffTotal').textContent=new Set(filtered.map(x=>x.staff)).size+'명';$('summary').replaceChildren();[...new Set([...data.staff,...filtered.map(x=>x.staff)])].forEach(name=>{let rr=filtered.filter(x=>x.staff===name);if(!rr.length)return;let tr=document.createElement('tr');[name,rr.length+'건',num(rr.reduce((s,r)=>s+r.qty,0))+'개',money(rr.reduce((s,r)=>s+r.qty*r.price,0))].forEach(v=>{let td=document.createElement('td');td.textContent=v;tr.append(td)});$('summary').append(tr)});$('jobs').replaceChildren();data.jobs.forEach(x=>{let tr=document.createElement('tr');let n=document.createElement('td');n.textContent=x.name;let p=document.createElement('td');p.textContent=money(x.price);let act=document.createElement('td');let e=document.createElement('button');e.textContent='수정';e.onclick=()=>{$('jobName').value=x.name;$('jobPrice').value=x.price;$('jobName').focus()};let del=document.createElement('button');del.textContent='삭제';del.className='danger';del.onclick=()=>{if(confirm('작업 종류를 삭제할까요? 과거 기록은 유지됩니다.')){data.jobs=data.jobs.filter(y=>y.name!==x.name);persist()}};act.append(e,' ',del);tr.append(n,p,act);$('jobs').append(tr)});$('staffList').replaceChildren();data.staff.forEach(name=>{let b=document.createElement('button');b.textContent=name+' ×';b.title='직원 목록에서 제거';b.onclick=()=>{if(name==='허지은')return alert('사장님은 삭제할 수 없습니다.');if(confirm(name+' 님을 목록에서 제거할까요? 과거 기록은 유지됩니다.')){data.staff=data.staff.filter(x=>x!==name);persist()}};$('staffList').append(b)})}function chip(target,text,active,action,extra=''){let b=document.createElement('button');b.type='button';b.className='chip '+(active?'active ':'')+extra;b.textContent=text;b.onclick=action;target.append(b)}function renderButtons(){const staff=$('staffButtons'),jobs=$('jobButtons'),filter=$('filterStaffButtons'),batch=$('batchStaff');staff.replaceChildren();jobs.replaceChildren();filter.replaceChildren();batch.replaceChildren();chip(filter,'🌈 전체',!$('filterStaff').value,()=>{$('filterStaff').value='';render()});data.staff.forEach(n=>{chip(staff,(n==='허지은'?'👑 ':'🌷 ')+n,$('staff').value===n,()=>{$('staff').value=n;render()},n==='허지은'?'boss':'');chip(filter,(n==='허지은'?'👑 ':'')+n,$('filterStaff').value===n,()=>{$('filterStaff').value=n;render()});let label=document.createElement('label');label.className='personcheck';let c=document.createElement('input');c.type='checkbox';c.value=n;c.checked=batchSelected.has(n);c.onchange=()=>{c.checked?batchSelected.add(n):batchSelected.delete(n);renderBatchIndividuals()};label.append(c,document.createTextNode(n));batch.append(label)});data.jobs.forEach(j=>chip(jobs,j.name+' · '+money(j.price),$('job').value===j.name,()=>{$('job').value=j.name;$('price').value=j.price;batchValues.clear();preview();render()}));document.querySelectorAll('[data-period]').forEach(b=>b.classList.toggle('active',b.dataset.period===$('quick').value));renderBatchIndividuals()}const batchSelected=new Set();const batchValues=new Map();function renderBatchIndividuals(){let root=$('batchIndividuals');if(!root)return;root.replaceChildren();let names=[...batchSelected].filter(n=>data.staff.includes(n));if(!names.length){root.textContent='등록할 직원을 선택해 주세요.';return}let table=document.createElement('table'),thead=document.createElement('thead'),tr=document.createElement('tr');['이름','수량 (개)','단가 (원)','예상 금액'].forEach(s=>{let th=document.createElement('th');th.textContent=s;tr.append(th)});thead.append(tr);table.append(thead);let body=document.createElement('tbody');names.forEach(n=>{let saved=batchValues.get(n)||{};let row=document.createElement('tr'),td=document.createElement('td');td.textContent=n;row.append(td);let q=document.createElement('input'),p=document.createElement('input');q.className=p.className='batch-edit';q.type=p.type='number';q.min='0';p.min='0';q.step=p.step='1';q.value=saved.qty??$('qty').value??'';p.value=saved.price??$('price').value??'0';let amount=document.createElement('td');amount.className='batch-total';function upd(){batchValues.set(n,{qty:q.value,price:p.value});amount.textContent=money((+q.value||0)*(+p.value||0))}q.oninput=p.oninput=upd;[q,p].forEach(input=>{let cell=document.createElement('td');cell.append(input);row.append(cell)});row.append(amount);upd();body.append(row)});table.append(body);root.append(table)}function showPage(page){$('ledgerPage').classList.toggle('hidden',page!=='ledger');$('entryPage').classList.toggle('hidden',page!=='entry');$('tabLedger').classList.toggle('primary',page==='ledger');$('tabEntry').classList.toggle('primary',page==='entry');window.scrollTo({top:0,behavior:'smooth'})}$('tabLedger').onclick=()=>showPage('ledger');$('tabEntry').onclick=()=>showPage('entry');function filteredRows(){return data.records.filter(r=>(!$('from').value||r.date>=$('from').value)&&(!$('to').value||r.date<=$('to').value)&&(!$('filterStaff').value||r.staff===$('filterStaff').value))}function preview(){$('preview').value=money((+$('qty').value||0)*(+$('price').value||0))}function reset() {editId=null;$('date').value=today();$('qty').value='';$('memo').value='';$('price').value=data.jobs.find(x=>x.name===$('job').value)?.price??0;preview()}$('job').onchange=()=>{$('price').value=data.jobs.find(x=>x.name===$('job').value)?.price??0;preview()};$('qty').oninput=()=>{preview();batchValues.clear();renderBatchIndividuals()};$('price').oninput=()=>{preview();batchValues.clear();renderBatchIndividuals()};$('save').onclick=()=>{let qty=+$('qty').value,price=+$('price').value;if(!$('date').value||!$('staff').value||!$('job').value||!Number.isFinite(qty)||qty<=0||!Number.isFinite(price)||price<0){alert('날짜·직원·작업 종류·올바른 수량과 단가를 입력해 주세요.');return}let r={id:editId||crypto.randomUUID(),date:$('date').value,staff:$('staff').value,job:$('job').value,qty,price,memo:$('memo').value.trim()};if(editId)data.records=data.records.map(x=>x.id===editId?r:x);else if($('batchMode').checked){let names=[...batchSelected].filter(n=>data.staff.includes(n));if(!names.length)return alert('일괄 등록할 사람을 선택하세요.');if(!confirm(names.length+'명에게 같은 작업을 등록할까요?'))return;let individual=names.map(n=>({name:n,...(batchValues.get(n)||{})}));if(individual.some(v=>!(+v.qty>0)||!(+v.price>=0)||!Number.isFinite(+v.price)))return alert('선택한 모든 사람의 수량과 단가를 확인해 주세요.');individual.forEach(v=>data.records.push({...r,id:crypto.randomUUID(),staff:v.name,qty:+v.qty,price:+v.price}));batchValues.clear();}else data.records.push(r);persist();reset();showPage('ledger')};$('cancel').onclick=reset;$('batchMode').onchange=()=>{$('batchPanel').classList.toggle('hidden',!$('batchMode').checked)};$('selectAll').onclick=()=>{data.staff.forEach(n=>batchSelected.add(n));render()};$('selectNone').onclick=()=>{batchSelected.clear();batchValues.clear();render()};document.querySelectorAll('[data-period]').forEach(b=>b.onclick=()=>{$('quick').value=b.dataset.period;$('quick').onchange()});$('addJob').onclick=()=>{let name=$('jobName').value.trim(),price=+$('jobPrice').value;if(!name||!Number.isFinite(price)||price<0){alert('작업 이름과 올바른 단가를 입력하세요.');return}let old=data.jobs.find(x=>x.name===name);if(old)old.price=price;else data.jobs.push({name,price});$('jobName').value='';$('jobPrice').value='';persist()};$('addStaff').onclick=()=>{let name=$('newStaff').value.trim();if(!name||data.staff.includes(name))return alert('새로운 직원 이름을 입력하세요.');data.staff.push(name);$('newStaff').value='';persist()};['from','to','filterStaff'].forEach(id=>$(id).onchange=render);$('quick').onchange=()=>{let t=today();$('from').value=$('quick').value==='today'?t:$('quick').value==='month'?t.slice(0,7)+'-01':'';$('to').value=$('quick').value==='all'?'':t;render()};$('clearFilters').onclick=()=>{$('from').value='';$('to').value='';$('filterStaff').value='';$('quick').value='all';render()};function download(name,body,type){let a=document.createElement('a'),url=URL.createObjectURL(new Blob([body],{type}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}$('csv').onclick=()=>{if(typeof XLSX==='undefined'){alert('엑셀 파일 생성 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.');return}let rows=filteredRows(),wb=XLSX.utils.book_new();let details=[['날짜','직원','작업 종류','수량','단가 (원)','금액 (원)','메모'],...rows.map(r=>[r.date,r.staff,r.job,+r.qty,+r.price,+r.qty*r.price,r.memo||''])];let sheet=XLSX.utils.aoa_to_sheet(details);sheet['!cols']=[{wch:15},{wch:14},{wch:26},{wch:13},{wch:16},{wch:18},{wch:35}];XLSX.utils.book_append_sheet(wb,sheet,'작업내역');let sums=[['직원','작업 건수','총 수량','총 금액 (원)'],...data.staff.map(n=>{let rr=rows.filter(r=>r.staff===n);return[n,rr.length,rr.reduce((s,r)=>s+(+r.qty),0),rr.reduce((s,r)=>s+(+r.qty)*(+r.price),0)]})];XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sums),'직원별 정산');XLSX.writeFile(wb,'대원테크_작업가계부_'+today()+'.xlsx')};$('backup').onclick=()=>download('대원테크_백업_'+today()+'.json',JSON.stringify(data,null,2),'application/json');$('restoreBtn').onclick=()=>$('restore').click();$('restore').onchange=async e=>{try{let obj=JSON.parse(await e.target.files[0].text());if(!Array.isArray(obj.records)||!Array.isArray(obj.staff)||!Array.isArray(obj.jobs))throw Error('백업 형식이 아닙니다');if(confirm('현재 기록을 백업 파일로 교체할까요?')){data=obj;persist()}}catch(err){alert('복원 실패: '+err.message)}e.target.value=''};
+function setConfig(){config={user:$('ghUser').value.trim(),repo:$('ghRepo').value.trim(),token:$('ghToken').value.trim()};localStorage.setItem(CFG,JSON.stringify(config))}function apiUrl(){return 'https://api.github.com/repos/'+encodeURIComponent(config.user)+'/'+encodeURIComponent(config.repo)+'/contents/daewontech-data.json'}async function request(method,body){let r=await fetch(apiUrl(),{method,headers:{Accept:'application/vnd.github+json',Authorization:'Bearer '+config.token,'X-GitHub-Api-Version':'2022-11-28',...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});let json=await r.json().catch(()=>({}));if(!r.ok){let err=new Error(json.message||'GitHub 요청 실패 ('+r.status+')');err.status=r.status;throw err}return json}function encode(obj){let bytes=new TextEncoder().encode(JSON.stringify(obj));let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.slice(i,i+8192));return btoa(binary)}function decode(content){let binary=atob(content.replace(/\s/g,'')),bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));return JSON.parse(new TextDecoder().decode(bytes))}async function fetchRemote(){try{let r=await request('GET');return {sha:r.sha,data:decode(r.content)}}catch(e){if(e.status===404)return {sha:null,data:null};throw e}}async function sync(upload=false){if(!valid()||syncBusy)return;syncBusy=true;status('☁️ 동기화 중…');try{let remote=await fetchRemote();if(remote.data&&!Array.isArray(remote.data.records))throw Error('저장소 데이터 형식 오류');if(dirty&&remote.sha!==sha&&sha!==null){status('⚠️ 다른 기기에서 변경됨 · 충돌');alert('다른 기기에서 기록이 변경되었습니다. 이 기기 기록은 유지됩니다. JSON 백업 후 변경 사항을 확인해 주세요.');return}if(!dirty&&remote.data){if(!sha&&data.records.length&&JSON.stringify(data.records)!==JSON.stringify(remote.data.records)){status('⚠️ 기기와 원격 기록 다름');alert('이 기기와 GitHub 기록이 다릅니다. 먼저 JSON 백업을 저장하고 확인해 주세요.');return}data=remote.data;sha=remote.sha;localStorage.setItem(KEY,JSON.stringify(data));render();status('☁️ 최신 기록 동기화됨');return}if(dirty||(!remote.data&&upload)){if(remote.data&&sha===null&&dirty){status('⚠️ 기존 원격 데이터 발견');alert('GitHub에 기존 기록이 있습니다. 현재 기기 기록과 자동으로 덮어쓰지 않습니다. 백업 후 다시 연결해 주세요.');return}let result=await request('PUT',{message:'대원테크 작업 기록 자동 저장',content:encode(data),...(remote.sha?{sha:remote.sha}:{})});sha=result.content.sha;dirty=false;status('☁️ GitHub에 저장 완료');return}sha=remote.sha;status('☁️ 연결됨 · 자동 저장 중')}catch(e){status('⚠️ 동기화 실패 · 로컬 저장 유지');console.error(e);if(!upload){}else alert('GitHub 연결 또는 저장 실패: '+e.message)}finally{syncBusy=false}}$('connect').onclick=async()=>{setConfig();if(!valid())return alert('GitHub 사용자명, 저장소, 토큰을 모두 입력하세요.');sha=null;await sync(true);if($('status').textContent.includes('완료')||$('status').textContent.includes('연결됨')||$('status').textContent.includes('동기화됨'))$('settings').open=false};$('disconnect').onclick=()=>{if(!confirm('이 기기에 저장된 GitHub 연결 정보를 삭제할까요? 작업 기록은 남습니다.'))return;config={};sha=null;localStorage.removeItem(CFG);$('ghToken').value='';status('이 기기에만 저장 중')};$('sync').onclick=()=>sync(true);$('ghUser').value=config.user||'';$('ghRepo').value=config.repo||'';$('ghToken').value=config.token||'';render();reset();render();if(valid()){status('☁️ 연결 정보 저장됨');sync(false)}else status('이 기기에 자동 저장됨');setInterval(()=>{if(valid()&&!dirty&&!document.hidden)sync(false)},30000);window.addEventListener('online',()=>{if(valid())sync(true)});
+})();
+</script>
+</body>
+</html>
